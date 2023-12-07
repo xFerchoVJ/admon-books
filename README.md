@@ -24,7 +24,13 @@ En la consola escribir lo siguiente para instalar los paquetes
 ```sh
 npm i
 ```
-Después para correr la página
+Después necesitas tener en tu .env esta variable
+DATABASE_URL="file:./dev.db"
+Al tenerla en se necesita correr las migraciones para eso corremos el comando
+```sh
+npx prisma generate dev
+```
+Y para que el servidor inicie corremos el comando
 ```sh
 npm run dev
 ```
