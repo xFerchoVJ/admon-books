@@ -27,6 +27,11 @@ const FormUpdate = ({ userId }) => {
       alert("Todos los campos son obligatorios");
       return;
     }
+    const letrasEspaciosPuntosComas = /^[A-Za-z\s.,]+$/;
+    if (!letrasEspaciosPuntosComas.test(name)) {
+      alert("El nombre solo deben contener letras y espacios");
+      return;
+    }
     try {
       const response = await axios.put(
         `http://localhost:3000/api/users/${userId}`,

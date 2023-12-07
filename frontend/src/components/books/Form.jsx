@@ -14,8 +14,17 @@ const Form = ({
 }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const soloLetrasConEspacios = /^[A-Za-z\s]+$/;
     if ([name, author, category, date].includes("")) {
       alert("Todos los campos son obligatorios");
+      return;
+    }
+    const letrasEspaciosPuntosComas = /^[A-Za-z\s.,]+$/;
+    if (
+      !letrasEspaciosPuntosComas.test(name) ||
+      !letrasEspaciosPuntosComas.test(author)
+    ) {
+      alert("El nombre y el autor solo deben contener letras y espacios");
       return;
     }
     const selectedCategory = categories.find((cat) => cat.name === category);

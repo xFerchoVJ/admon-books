@@ -10,6 +10,13 @@ const FormCreate = () => {
       alert("Todos los campos son obligatorios");
       return;
     }
+    const letrasEspaciosPuntosComas = /^[A-Za-z\s.,]+$/;
+    if (
+      !letrasEspaciosPuntosComas.test(name)
+    ) {
+      alert("El nombre solo debe contener letras y espacios");
+      return;
+    }
     try {
       const response = await axios.post(
         "http://localhost:3000/api/categories",
@@ -41,7 +48,7 @@ const FormCreate = () => {
       </div>
       <div className="mb-3">
         <label htmlFor="description" className="form-label">
-          Nombre
+          Descripción
         </label>
         <input
           type="text"
