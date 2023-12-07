@@ -3,7 +3,11 @@ import { prisma } from "../config/db.js";
 
 const allUsers = async (req = request, res = response) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      include: {
+        books: true,
+      },
+    });
     if (users.length === 0) {
       return res.status(404).json({ msg: "No hay usuarios registrados" });
     }
@@ -22,7 +26,14 @@ const getUser = async (req = request, res = response) => {
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
-    res.status(200).json(user);
+    const borrowedBooks = await prisma.book.findMany({
+      where: {
+        user: {
+          id: user.id,
+        },
+      },
+    });
+    res.status(200).json({ user, borrowedBooks });
   } catch (error) {
     console.log(error);
     const customError = new Error("Error al obtener usuario");
@@ -43,7 +54,7 @@ const createUser = async (req = request, res = response) => {
     const createdUser = await prisma.user.create({
       data: req.body,
     });
-    res.status(200).json(createdUser);
+    res.status(200).json({ msg: "Usuario creado correctamente", createdUser });
   } catch (error) {
     const customError = new Error("Error al crear usuario");
     return res.status(500).json({ msg: customError.message });
@@ -63,7 +74,9 @@ const updateUser = async (req = request, res = response) => {
       },
       data: req.body,
     });
-    res.status(200).json(updatedUser);
+    res
+      .status(200)
+      .json({ msg: "Usuario actualizado correctamente", updatedUser });
   } catch (error) {
     console.log(error);
     const customError = new Error("Error al actualizar usuario");
@@ -105,4 +118,5 @@ const findUserById = async (userId) => {
     console.log(error);
   }
 };
+
 export { allUsers, getUser, createUser, updateUser, deleteUser };

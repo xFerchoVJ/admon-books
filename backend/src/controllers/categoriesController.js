@@ -32,7 +32,9 @@ const createCategory = async (req = request, res = response) => {
       data: req.body,
     });
 
-    res.status(200).json(newCategory);
+    res
+      .status(200)
+      .json({ msg: "Categoria creada correctamente", newCategory });
   } catch (err) {
     console.log(err);
     const error = new Error("Error al crear la categoria");
@@ -84,7 +86,9 @@ const updateCategory = async (req = request, res = response) => {
       },
       data: req.body,
     });
-    res.status(200).json(updatedCategory);
+    res
+      .status(200)
+      .json({ msg: "Categoria actualizada correctamente", updatedCategory });
   } catch (error) {
     console.log(error);
     const customError = new Error("Error al actualizar la categoria");
@@ -102,10 +106,18 @@ const deleteCategory = async (req = request, res = response) => {
       where: {
         id: parseInt(id),
       },
+      include: {
+        categoryBooks: true,
+      },
     });
 
     if (!category) {
       return res.status(404).json({ msg: "No se encontro la categoria" });
+    }
+    if (category.categoryBooks.length > 0) {
+      return res.status(403).json({
+        msg: "No puedes eliminar categorias si tienen libros añadidos.",
+      });
     }
     const deletedCategory = await prisma.category.delete({
       where: {
@@ -122,4 +134,10 @@ const deleteCategory = async (req = request, res = response) => {
   }
 };
 
-export { allCategories, createCategory, findCategory, updateCategory, deleteCategory };
+export {
+  allCategories,
+  createCategory,
+  findCategory,
+  updateCategory,
+  deleteCategory,
+};

@@ -2,11 +2,31 @@ import { prisma } from "../config/db.js";
 
 const getBooks = async (req, res) => {
   try {
-    const allBoks = await prisma.book.findMany();
-    if (allBoks.length === 0) {
+    const allBooks = await prisma.book.findMany({
+      include: {
+        category: true,
+        user: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    if (allBooks.length === 0) {
       return res.status(200).json({ msg: "No hay libros." });
     }
-    res.status(200).json(allBoks);
+    const books = allBooks.map((book) => {
+      return {
+        id: book.id,
+        name: book.name,
+        author: book.author,
+        publicationDate: book.publicationDate,
+        userId: book.userId,
+        category: book.category.name,
+        user: book.user?.name || "No han pedido prestado el libro",
+      };
+    });
+
+    res.status(200).json(books);
   } catch (err) {
     console.log(err);
     const error = new Error("Error al obtener los libros");
@@ -23,6 +43,9 @@ const getBook = async (req, res) => {
     const book = await prisma.book.findFirst({
       where: {
         id: parseInt(id),
+      },
+      include: {
+        category: true,
       },
     });
 
@@ -63,7 +86,7 @@ const createBook = async (req, res) => {
       data: req.body,
     });
 
-    res.status(200).json(newBook);
+    res.status(200).json({ msg: "Libro creado con exito", newBook });
   } catch (err) {
     console.log(err);
     const error = new Error("Error al crear el libro");
@@ -91,9 +114,17 @@ const updateBook = async (req, res) => {
       where: {
         id: parseInt(id),
       },
-      data: req.body,
+      data: {
+        name: req.body.name,
+        author: req.body.author,
+        category: {
+          connect: { id: req.body.categoryId }, // Aquí establecemos la relación con la categoría
+        },
+        publicationDate: req.body.date, // Asegúrate de que esta línea refleje correctamente tu estructura de datos
+      },
     });
-    res.status(200).json(updatedBook);
+
+    res.status(200).json({ msg: "Libro editado correctamente", updatedBook });
   } catch (error) {
     console.log(error);
     const customError = new Error("Error al actualizar el libro");
@@ -124,7 +155,7 @@ const deleteBook = async (req, res) => {
     });
     res
       .status(200)
-      .json({ msg: "Categoría eliminada correctamente.", deletedBook });
+      .json({ msg: "Libro eliminado correctamente.", deletedBook });
   } catch (error) {
     console.log(error);
     const customError = new Error("Error al eliminar el libro");
@@ -132,4 +163,35 @@ const deleteBook = async (req, res) => {
   }
 };
 
-export { getBook, getBooks, createBook, updateBook, deleteBook };
+const borrowBook = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+  try {
+    const book = await prisma.book.findFirst({
+      where: {
+        id: parseInt(id),
+      },
+      include: {
+        user: true,
+      },
+    });
+    console.log(book.user ? "Tiene user" : "No tiene user");
+    if (book.user) {
+      return res.status(400).json({ msg: "El lbro ya esta prestado" });
+    }
+    const borrowBook = await prisma.book.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        userId: parseInt(userId),
+      },
+    });
+    res.status(200).json({ msg: "Libro prestado al usuario.", borrowBook });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: "Error al prestar el libro" });
+  }
+};
+
+export { getBook, getBooks, createBook, updateBook, deleteBook, borrowBook };
