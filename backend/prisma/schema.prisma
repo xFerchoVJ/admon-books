@@ -33,7 +33,7 @@ model Book {
   name            String   @unique
   author          String   @unique
   categoryId      Int //Relación muchos a uno con Categoria
-  publicationDate DateTime
+  publicationDate String
   userId          Int?
   category        Category @relation(fields: [categoryId], references: [id]) // Relación con la categoría
   user            User?    @relation(fields: [userId], references: [id]) // Relación con el user
